@@ -20,16 +20,12 @@ const app=express();
 
 //do not use multiple app.use as it will match to  all the routes having the specified path, irrespective of exact match. Instead use app.get, app.post, app.put, app.delete etc.
 
+app.use(express.json());
+//This is a middleware that parses the incoming request across all routes with JSON payloads. It is used to parse the incoming request body and store it in req.body. Otherwise, req.body will be undefined.
+
 app.post("/signup",async (req,res)=>{
-    //Creating a new instance of the the User model
-    const user=new User({
-        firstName:"Trial2",
-        lastName:"User",
-        emailId:"trial2@devtinder.com",
-        password:"trialpassword",
-        age:20,
-        gender:"male",
-    });
+    // Creating a new instance of the the User model
+    const user=new User(req.body);
     try {
         //Saving the user to the database
         await user.save();
