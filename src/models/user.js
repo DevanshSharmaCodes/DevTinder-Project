@@ -1,4 +1,5 @@
 const mongoose=require("mongoose");
+const validator=require("validator");
 
 const userSchema= new mongoose.Schema({
     firstName:{
@@ -14,6 +15,11 @@ const userSchema= new mongoose.Schema({
         unique:true,
         trim:true,
         lowercase:true,
+        validate(value){
+            if(!validator.isEmail(value)){
+                throw new Error("Invalid email address" + value);
+            }
+        }
     },
     password:{
         type:String,
@@ -34,6 +40,11 @@ const userSchema= new mongoose.Schema({
     },
     photoUrl:{
         type:String,
+        validate(value){
+            if(!validator.isURL(value)){
+                throw new Error("Invalid photo URL"+value);
+            }
+        }
     },
     about:{
         type:String,
@@ -44,6 +55,7 @@ const userSchema= new mongoose.Schema({
     }
 },{
     timestamps:true,
+    //This will add createdAt and updatedAt fields to the schema.
 })
 
 module.exports=mongoose.model("User",userSchema);; 

@@ -63,10 +63,19 @@ app.delete("/user",async(req,res)=>{
 })
 
 //Updating a user by ID:
-app.patch("/user",async(req,res)=>{
-    const userId=req.body.userId;
+app.patch("/user/:userId",async(req,res)=>{
+    const userId=req.params?.userId;
     const data=req.body;
     try {
+        const ALLOWED_UPDATES=["photoUrl","about","gender","age","skills"]
+        const isUpdateAllowed=Object.keys(data).every((update)=>ALLOWED_UPDATES.includes(update));
+        if(!isUpdateAllowed){
+            throw new Error("Updates not allowed");
+        }
+        if(data?.skills.length>10){
+            throw new Error("Skills cannot be more than 10");
+        }
+        //Above we have applied API validation.
         await User.findByIdAndUpdate({_id:userId},data,{runValidators:true});
         //here data can contain multiple fields to be updated, even those which are not present in our schema(like userId). So, MongoDB will ignore the fields which are not present in the schema and update only the fields which are present.
         res.send("User updated successfully");
