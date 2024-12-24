@@ -67,7 +67,7 @@ app.patch("/user",async(req,res)=>{
     const userId=req.body.userId;
     const data=req.body;
     try {
-        await User.findByIdAndUpdate({_id:userId},data);
+        await User.findByIdAndUpdate({_id:userId},data,{runValidators:true});
         //here data can contain multiple fields to be updated, even those which are not present in our schema(like userId). So, MongoDB will ignore the fields which are not present in the schema and update only the fields which are present.
         res.send("User updated successfully");
     } catch (error) {
@@ -101,3 +101,4 @@ connectDB().then(()=>{
 //     console.log("Server is running on port 3000");
 // })
 // Moved this code inside the connectDB function to ensure that the server starts only when the DB connection is established. This is done using the .then() and .catch() methods. The .then() method is called when the connection is successful and the .catch() method is called when the connection fails.
+
