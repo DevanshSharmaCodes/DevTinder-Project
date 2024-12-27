@@ -94,6 +94,7 @@ app.post("/signup",async (req,res)=>{
         
         //Hashing the password
         const {firstName,lastName,emailId,password}=req.body;
+        //bcrypt is a library used for hashing passwords
         const passwordHash=await bcrypt.hash(password,10);
         //The second argument of hash (here 10) is the number of salt rounds
         
@@ -110,6 +111,24 @@ app.post("/signup",async (req,res)=>{
         res.send("User added successfully");    
     } catch (error) {
         res.status(400).send("Error while adding user");
+    }
+})
+
+app.post("/login",async(req,res)=>{
+    try {
+        const {emailId,password}=req.body;
+        const user=await User.findOne({emailId:emailId});
+        if(!user){
+            throw new Error("Invalid credentials.");
+        }
+        const isPasswordValid=bcrypt.compare(password,user.password);
+        if(isPasswordValid){
+            res.send("Login successfull.");
+        }else{
+            throw new Error("Invalid credentials.");
+        }
+    } catch (error) {
+        res.status(400).send("Error:"+error.message);
     }
 })
 
