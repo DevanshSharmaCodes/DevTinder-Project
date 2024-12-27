@@ -1,5 +1,7 @@
 const mongoose=require("mongoose");
 const validator=require("validator");
+const bcrypt=require("bcrypt");
+const jwt=require("jsonwebtoken");
 
 const userSchema= new mongoose.Schema({
     firstName:{
@@ -57,5 +59,21 @@ const userSchema= new mongoose.Schema({
     timestamps:true,
     //This will add createdAt and updatedAt fields to the schema.
 })
+
+//****** never use arrow functions in the code below, because this keyword cannot work with arrow fn ******
+userSchema.methods.getJWT=async function(){
+    const user=this;
+    const token=await jwt.sign({_id:this._id},"Dev@Tinder$69");
+    return token;
+}
+//this is known as schema method
+
+userSchema.methods.validatePassword=async function(passwordInputByUser){
+    const user=this;
+    const passwordHash=user.password;
+    const isPasswordValid=bcrypt.compare(passwordInputByUser,passwordHash);
+    return isPasswordValid;
+
+}
 
 module.exports=mongoose.model("User",userSchema);; 
