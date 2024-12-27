@@ -3,6 +3,8 @@ const connectDB=require("./config/database");
 const User=require("./models/user")
 const {validateSignUpData}=require("./utils/validation");
 const bcrypt=require("bcrypt");
+const cookieParser=require("cookie-parser");
+const jwt=require("jsonwebtoken"); 
 
 const app=express();
 
@@ -24,6 +26,7 @@ const app=express();
 //do not use multiple app.use as it will match to  all the routes having the specified path, irrespective of exact match. Instead use app.get, app.post, app.put, app.delete etc.
 
 app.use(express.json());
+app.use(cookieParser());
 //This is a middleware that parses the incoming request across all routes with JSON payloads. It is used to parse the incoming request body and store it in req.body. Otherwise, req.body will be undefined.
 
 //Fetching details of a single user:
@@ -110,7 +113,7 @@ app.post("/signup",async (req,res)=>{
         await user.save();
         res.send("User added successfully");    
     } catch (error) {
-        res.status(400).send("Error while adding user");
+        res.status(400).send(error.message);
     }
 })
 
@@ -121,14 +124,40 @@ app.post("/login",async(req,res)=>{
         if(!user){
             throw new Error("Invalid credentials.");
         }
-        const isPasswordValid=bcrypt.compare(password,user.password);
+        const isPasswordValid=await bcrypt.compare(password,user.password);
         if(isPasswordValid){
+            //Create a JWT token
+            const token=await jwt.sign({_id:user._id},"Dev@Tinder$69");
+            console.log(token);
+
+            //Add the token to cookie and send the response back to the user.
+            res.cookie("token",token);
             res.send("Login successfull.");
         }else{
             throw new Error("Invalid credentials.");
         }
     } catch (error) {
         res.status(400).send("Error:"+error.message);
+    }
+})
+
+app.get("/profile",async(req,res)=>{
+    try {
+        const cookies=req.cookies;
+        const {token}=cookies;
+        if(!token){
+            throw new Error("Invalid token");
+        }
+    
+        //Validating the token
+        const decodedMessage=await jwt.verify(token,"Dev@Tinder$69");
+        console.log(decodedMessage);
+        const {_id}=decodedMessage;
+        const user=await User.findById(_id);
+        console.log("The logged in user is: " + user?.firstName+" "+user?.lastName);
+        res.send("Reading cookie");
+    } catch (error) {
+        res.status(400).send(error.message);
     }
 })
 
