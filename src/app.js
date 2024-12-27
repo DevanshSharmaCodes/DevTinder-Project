@@ -1,6 +1,9 @@
 const express=require('express');
 const connectDB=require("./config/database");
 const User=require("./models/user")
+const {validateSignUpData}=require("./utils/validation");
+const bcrypt=require("bcrypt");
+
 const app=express();
 
 // app.get("/",(req,res)=>{
@@ -85,9 +88,23 @@ app.patch("/user/:userId",async(req,res)=>{
 })
 
 app.post("/signup",async (req,res)=>{
-    // Creating a new instance of the the User model
-    const user=new User(req.body);
     try {
+        //Validating the data
+        validateSignUpData(req);
+        
+        //Hashing the password
+        const {firstName,lastName,emailId,password}=req.body;
+        const passwordHash=await bcrypt.hash(password,10);
+        //The second argument of hash (here 10) is the number of salt rounds
+        
+    // Creating a new instance of the the User model
+    //We should never trust req.body as, the user can send any data in the request body. That is why we should validate the data before saving it to the database(as done above).
+    const user=new User({
+        firstName,
+        lastName,
+        emailId,
+        password:passwordHash
+    });
         //Saving the user to the database
         await user.save();
         res.send("User added successfully");    
