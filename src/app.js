@@ -1,11 +1,8 @@
 const express=require('express');
 const connectDB=require("./config/database");
-const User=require("./models/user")
-const {validateSignUpData}=require("./utils/validation");
-const bcrypt=require("bcrypt");
 const cookieParser=require("cookie-parser");
 const jwt=require("jsonwebtoken"); 
-const {userAuth}=require("./middlewares/auth"); 
+
 
 const app=express();
 
@@ -91,84 +88,98 @@ app.use(cookieParser());
 //     }
 // })
 
-app.post("/signup",async (req,res)=>{
-    try {
-        //Validating the data
-        validateSignUpData(req);
+// app.post("/signup",async (req,res)=>{
+//     try {
+//         //Validating the data
+//         validateSignUpData(req);
         
-        //Hashing the password
-        const {firstName,lastName,emailId,password}=req.body;
-        //bcrypt is a library used for hashing passwords
-        const passwordHash=await bcrypt.hash(password,10);
-        //The second argument of hash (here 10) is the number of salt rounds
+//         //Hashing the password
+//         const {firstName,lastName,emailId,password}=req.body;
+//         //bcrypt is a library used for hashing passwords
+//         const passwordHash=await bcrypt.hash(password,10);
+//         //The second argument of hash (here 10) is the number of salt rounds
         
-    // Creating a new instance of the the User model
-    //We should never trust req.body as, the user can send any data in the request body. That is why we should validate the data before saving it to the database(as done above).
-    const user=new User({
-        firstName,
-        lastName,
-        emailId,
-        password:passwordHash
-    });
-        //Saving the user to the database
-        await user.save();
-        res.send("User added successfully");    
-    } catch (error) {
-        res.status(400).send(error.message);
-    }
-})
+//     // Creating a new instance of the the User model
+//     //We should never trust req.body as, the user can send any data in the request body. That is why we should validate the data before saving it to the database(as done above).
+//     const user=new User({
+//         firstName,
+//         lastName,
+//         emailId,
+//         password:passwordHash
+//     });
+//         //Saving the user to the database
+//         await user.save();
+//         res.send("User added successfully");    
+//     } catch (error) {
+//         res.status(400).send(error.message);
+//     }
+// })
+//This signup logic is sent to authRouter in routes/auth.js
 
-app.post("/login",async(req,res)=>{
-    try {
-        const {emailId,password}=req.body;
-        const user=await User.findOne({emailId:emailId});
-        if(!user){
-            throw new Error("Invalid credentials.");
-        }
-        const isPasswordValid=await user.validatePassword(password);
-        if(isPasswordValid){
-            //Create a JWT token
-            const token=await user.getJWT();
-            //  
+// app.post("/login",async(req,res)=>{
+//     try {
+//         const {emailId,password}=req.body;
+//         const user=await User.findOne({emailId:emailId});
+//         if(!user){
+//             throw new Error("Invalid credentials.");
+//         }
+//         const isPasswordValid=await user.validatePassword(password);
+//         if(isPasswordValid){
+//             //Create a JWT token
+//             const token=await user.getJWT();
+//             //  
 
-            //Add the token to cookie and send the response back to the user.
-            res.cookie("token",token);
-            res.send("Login successfull.");
-        }else{
-            throw new Error("Invalid credentials.");
-        }
-    } catch (error) {
-        res.status(400).send("Error:"+error.message);
-    }
-})
+//             //Add the token to cookie and send the response back to the user.
+//             res.cookie("token",token);
+//             res.send("Login successfull.");
+//         }else{
+//             throw new Error("Invalid credentials.");
+//         }
+//     } catch (error) {
+//         res.status(400).send("Error:"+error.message);
+//     }
+// })
+//This login logic is sent to authRouter in routes/auth.js
 
 //userAuth middleware is added in profile api=> at first userAuth middleware runs, if everything runs fine then next() is called from the userAuth middleware and the code inside profile api runs, else if the token is not valid(checked by userAuth), then none of the code present in profile api is run. 
-app.get("/profile",userAuth,async(req,res)=>{
-    try {
-        // const cookies=req.cookies;
-        // const {token}=cookies;
-        // if(!token){
-        //     throw new Error("Invalid token");
-        // }
+// app.get("/profile",userAuth,async(req,res)=>{
+//     try {
+//         // const cookies=req.cookies;
+//         // const {token}=cookies;
+//         // if(!token){
+//         //     throw new Error("Invalid token");
+//         // }
     
-        // //Validating the token
-        // const decodedMessage=await jwt.verify(token,"Dev@Tinder$69");
-        // // console.log(decodedMessage);
-        // const {_id}=decodedMessage;
-        // const user=await User.findById(_id);
-        //As all this above code has now been taken care of in the userAuth middleware, thus commented out 
-        const user=req.user;//(sent by middleware)
-        // console.log("The logged in user is: " + user?.firstName+" "+user?.lastName);
-        res.send("Reading cookie");
-    } catch (error) {
-        res.status(400).send(error.message);
-    }
-})
+//         // //Validating the token
+//         // const decodedMessage=await jwt.verify(token,"Dev@Tinder$69");
+//         // // console.log(decodedMessage);
+//         // const {_id}=decodedMessage;
+//         // const user=await User.findById(_id);
+//         //As all this above code has now been taken care of in the userAuth middleware, thus commented out 
+//         const user=req.user;//(sent by middleware)
+//         // console.log("The logged in user is: " + user?.firstName+" "+user?.lastName);
+//         res.send("Reading cookie");
+//     } catch (error) {
+//         res.status(400).send(error.message);
+//     }
+// })
+//This profile api is sent to profileRouter in routes/profile.js
 
-app.post("/sendConnectionRequest",userAuth,(req,res)=>{
-    console.log("Sending connection request.");
-    res.send("Connection request sent"); 
-})
+// app.post("/sendConnectionRequest",userAuth,(req,res)=>{
+//     console.log("Sending connection request.");
+//     res.send("Connection request sent"); 
+// })
+//This sendConnectionRequest api is sent to requestsRouter in routes/requests.js
+
+const authRouter=require("./routes/auth");
+const profileRouter=require("./routes/profile");
+const requestsRouter=require("./routes/requests");
+
+app.use('/',authRouter);
+app.use('/',profileRouter);
+app.use('/',requestsRouter);
+//Any request that comes to the server will first go through the authRouter,check whether the request is for auth, if yes then it will go to authRouter, if not then it will go to the next router, which is profileRouter, and so on.
+
 
 connectDB().then(()=>{
     console.log("Database connection successful");
@@ -179,7 +190,7 @@ connectDB().then(()=>{
 }).catch((err)=>{
     console.log("Connection failed");
 })
-
+ 
 // app.listen(3000,()=>{
 //     console.log("Server is running on port 3000");
 // })
