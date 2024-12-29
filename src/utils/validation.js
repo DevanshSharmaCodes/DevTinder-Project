@@ -19,4 +19,17 @@ const validateEditProfileData=(req)=>{
     return isEditAllowed;
 }
 
-module.exports={validateSignUpData,validateEditProfileData};
+const validatePasswordChangeData=(req)=>{
+    const {emailId,newPassword}=req.body;
+    if(!emailId){
+        throw new Error("Email ID is required.");
+    }if(!validator.isEmail(emailId)){
+        throw new Error("Invalid email address.");
+    }if(!newPassword){
+        throw new Error("New password is required.");
+    }if(!validator.isStrongPassword(newPassword)){
+        throw new Error("Please enter a strong password.")
+    }
+}
+
+module.exports={validateSignUpData,validateEditProfileData,validatePasswordChangeData};
