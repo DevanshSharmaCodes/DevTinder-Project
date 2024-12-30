@@ -174,10 +174,12 @@ app.use(cookieParser());
 const authRouter=require("./routes/auth");
 const profileRouter=require("./routes/profile");
 const requestsRouter=require("./routes/requests");
+const userRouter = require('./routes/user');
 
 app.use('/',authRouter);
 app.use('/',profileRouter);
 app.use('/',requestsRouter);
+app.use('/',userRouter);
 //Any request that comes to the server will first go through the authRouter,check whether the request is for auth, if yes then it will go to authRouter, if not then it will go to the next router, which is profileRouter, and so on.
 
 
